@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% set game_page = True %}
+
+{% block content %}
+<div class="game-page">
+    <div class="game-container">
+
+        <!-- Левая панель: результат и кнопки -->
+        <div class="left-panel" style="flex-direction: column; justify-content: center;">
+            <h2>Результат быстрой игры</h2>
+            <p>Твоя отметка была на расстоянии:</p>
+            <h1>{{ distance | round(2) }} км</h1>
+
+            <div class="result-buttons">
+                <a href="{{ url_for('quick_game') }}"><button class="guess-button">Играть ещё раз</button></a>
+                <a href="{{ url_for('menu') }}"><button class="guess-button">В меню</button></a>
+            </div>
+        </div>
+
+        <!-- Правая панель: карта с двумя точками -->
+        <div class="right-panel">
+            <div id="result-map" class="guess-map"></div>
+        </div>
+
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var realLat = {{ real_lat }};
+        var realLng = {{ real_lng }};
+        var guessLat = {{ guess_lat }};
+        var guessLng = {{ guess_lng }};
+
+        var map = L.map('result-map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([realLat, realLng], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Маркеры
+        var realMarker = L.marker([realLat, realLng]).addTo(map).bindPopup('Правильное место').openPopup();
+        var guessMarker = L.marker([guessLat, guessLng]).addTo(map).bindPopup('Твоя отметка');
+
+        // Линия между точками
+        var line = L.polyline([[realLat, realLng], [guessLat, guessLng]], {color: 'red'}).addTo(map);
+
+        // Автоматически подстраиваем карту под все точки
+        var group = new L.featureGroup([realMarker, guessMarker]);
+        map.fitBounds(group.getBounds(), { padding: [50, 50] });
+    });
+</script>
+{% endblock %}

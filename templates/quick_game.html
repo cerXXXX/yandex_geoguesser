@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% set game_page = True %}
+
+{% block content %}
+<div class="game-page">
+    <div class="game-container">
+
+        <!-- Левая панель: спутниковый снимок -->
+        <div class="left-panel">
+            <img src="https://static-maps.yandex.ru/1.x/?ll={{ real_lng }},{{ real_lat }}&z=15&size=600,400&l=sat"
+                 alt="Спутниковый снимок"
+                 class="satellite-image full">
+        </div>
+
+        <!-- Правая панель: карта и кнопка -->
+        <div class="right-panel">
+            <div id="map" class="guess-map"></div>
+
+            <form id="guess-form" method="post">
+                <input type="hidden" name="guess_lat" id="guess_lat">
+                <input type="hidden" name="guess_lng" id="guess_lng">
+                <button type="submit" disabled id="submit-button" class="guess-button">Подтвердить выбор</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<!-- Leaflet карты -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        var marker;
+
+        map.on('click', function(e) {
+            var lat = e.latlng.lat.toFixed(6);
+            var lng = e.latlng.lng.toFixed(6);
+
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+
+            document.getElementById('guess_lat').value = lat;
+            document.getElementById('guess_lng').value = lng;
+            document.getElementById('submit-button').disabled = false;
+        });
+    });
+</script>
+{% endblock %}

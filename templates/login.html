@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-wrapper">
+    <h2>Вход в аккаунт</h2>
+
+    <form method="post" action="{{ url_for('login') }}">
+        <input type="email" name="email" placeholder="Email" required><br>
+        <input type="password" name="password" placeholder="Пароль" required><br>
+
+        <button type="submit">Войти</button>
+    </form>
+
+    <p>Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a></p>
+
+    <!-- Кнопка быстрого входа в режим без регистрации -->
+    <hr>
+    <h3>Или попробуй быструю игру!</h3>
+    <a href="{{ url_for('quick_game') }}"><button>Играть без регистрации</button></a>
+</div>
+{% endblock %}

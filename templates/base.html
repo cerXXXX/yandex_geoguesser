@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title or 'GeoGuesser' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>GeoGuesser</h1>
+        {% if current_user.is_authenticated %}
+            <div class="user-info">
+                Привет, {{ current_user.nickname }} | <a href="{{ url_for('logout') }}">Выйти</a>
+            </div>
+        {% endif %}
+    </header>
+
+    {% block content %}{% endblock %}
+
+    {% if not game_page %}
+        <footer>
+            <p>&copy; 2025 GeoGuesser. Все права защищены.</p>
+        </footer>
+    {% endif %}
+
+</body>
+</html>

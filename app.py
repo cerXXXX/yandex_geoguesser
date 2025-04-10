@@ -1,35 +1,169 @@
-from flask import Flask, render_template_string, request, redirect, session
+from flask import Flask, render_template, redirect, url_for, flash, request, session
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from models import db, User, Game, Round
+from config import Config
+from werkzeug.security import generate_password_hash, check_password_hash
 import random
+import datetime
 import requests
-import time
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Для работы сессий
+app.config.from_object(Config)
+
+db.init_app(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 
-# === Главная страница ===
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
 @app.route('/')
 def index():
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Быстрая игра GeoGuesser</title>
-        <style>
-            body { font-family: Arial; text-align: center; background: #f5f5f5; margin: 0; padding: 50px; }
-            button { padding: 20px 40px; font-size: 20px; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; }
-            button:hover { background-color: #45a049; }
-        </style>
-    </head>
-    <body>
-        <h1>Добро пожаловать в Быструю игру GeoGuesser!</h1>
-        <a href="/quick-game"><button>Начать игру</button></a>
-    </body>
-    </html>
-    """)
+    return redirect(url_for('login'))
 
 
-# === Быстрая игра ===
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        confirm = request.form['confirm']
+        nickname = request.form['nickname']
+
+        if password != confirm:
+            flash('Пароли не совпадают.')
+            return redirect(url_for('register'))
+
+        if User.query.filter_by(email=email).first():
+            flash('Email уже зарегистрирован.')
+            return redirect(url_for('register'))
+
+        hashed_password = generate_password_hash(password)
+        new_user = User(email=email, password=hashed_password, nickname=nickname)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Вы зарегистрированы!')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('menu'))  # ✅ Перенаправляем, если уже залогинен
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        remember = True if request.form.get('remember') else False  # <== добавляем флажок
+
+        user = User.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password, password):
+            login_user(user, remember=remember)  # <== флаг remember тут!
+            return redirect(url_for('menu'))
+        else:
+            flash('Неверные учетные данные.')
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
+@app.route('/menu')
+@login_required
+def menu():
+    print('Authenticated:', current_user.is_authenticated)
+    print('Remembered:', current_user.is_authenticated and '_remember' in request.cookies)
+    unfinished_game = Game.query.filter_by(user_id=current_user.id, score=None).first()
+    return render_template('menu.html', unfinished_game=unfinished_game)
+
+
+@app.route('/start_game')
+@login_required
+def start_game():
+    game = Game(user_id=current_user.id, date=datetime.datetime.now())
+    db.session.add(game)
+    db.session.commit()
+    session['game_id'] = game.id
+    return redirect(url_for('game'))
+
+
+@app.route('/game', methods=['GET', 'POST'])
+@login_required
+def game():
+    if request.method == 'POST':
+        guess_lat = float(request.form['guess_lat'])
+        guess_lng = float(request.form['guess_lng'])
+        real_lat = session.get('real_lat')
+        real_lng = session.get('real_lng')
+
+        distance = calculate_distance(real_lat, real_lng, guess_lat, guess_lng)
+        points = calculate_points(distance)
+
+        round_entry = Round(
+            game_id=session['game_id'],
+            real_lat=real_lat,
+            real_lng=real_lng,
+            guess_lat=guess_lat,
+            guess_lng=guess_lng,
+            distance=distance,
+            points=points
+        )
+        db.session.add(round_entry)
+        db.session.commit()
+
+        return redirect(url_for('round_result', round_id=round_entry.id))
+
+    real_lat, real_lng = generate_valid_coordinates()
+    session['real_lat'] = real_lat
+    session['real_lng'] = real_lng
+
+    # TODO: Добавить API Яндекса для получения снимков
+    return render_template('game.html', real_lat=real_lat, real_lng=real_lng)
+
+
+@app.route('/round_result/<int:round_id>')
+@login_required
+def round_result(round_id):
+    round_entry = Round.query.get(round_id)
+    return render_template('round_result.html', round_entry=round_entry)
+
+
+@app.route('/finish_game')
+@login_required
+def finish_game():
+    game_id = session.get('game_id')
+    if not game_id:
+        return redirect(url_for('menu'))
+
+    rounds = Round.query.filter_by(game_id=game_id).all()
+    total_score = sum(r.points for r in rounds)
+
+    print(game_id)
+    game = Game.query.get(game_id)
+    print(game)
+    game.score = total_score
+    db.session.commit()
+
+    return render_template('game_result.html', score=total_score)
+
+
+@app.route('/leaderboard')
+def leaderboard():
+    top_games = Game.query.order_by(Game.score.desc()).limit(10).all()
+    return render_template('leaderboard.html', games=top_games)
+
+
 @app.route('/quick-game', methods=['GET', 'POST'])
 def quick_game():
     if request.method == 'POST':
@@ -40,189 +174,64 @@ def quick_game():
 
         distance = calculate_distance(real_lat, real_lng, guess_lat, guess_lng)
 
-        return redirect(
-            f"/quick-result?real_lat={real_lat}&real_lng={real_lng}&guess_lat={guess_lat}&guess_lng={guess_lng}&distance={distance}")
+        return render_template('quick_result.html', real_lat=real_lat, real_lng=real_lng, guess_lat=guess_lat,
+                               guess_lng=guess_lng, distance=distance)
 
-    # Генерация координат
+    # Генерируем координаты случайным образом
     real_lat, real_lng = generate_valid_coordinates()
     session['real_lat'] = real_lat
     session['real_lng'] = real_lng
 
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Быстрая игра</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <style>
-            body { margin: 0; font-family: Arial; background: #222; color: white; }
-            .game-container { display: flex; height: 100vh; }
-            .left-panel, .right-panel { flex: 1; display: flex; justify-content: center; align-items: center; }
-            .left-panel { background: #111; }
-            .right-panel { background: #1e1e1e; flex-direction: column; }
-            .guess-map { width: 90%; height: 500px; border-radius: 10px; }
-            .guess-button { margin-top: 20px; padding: 15px 30px; font-size: 18px; background-color: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        </style>
-    </head>
-    <body>
-        <div class="game-container">
-            <div class="left-panel">
-                <img id="satelliteImage" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div class="right-panel">
-                <div id="map" class="guess-map"></div>
-                <form id="guess-form" method="post">
-                    <input type="hidden" name="guess_lat" id="guess_lat">
-                    <input type="hidden" name="guess_lng" id="guess_lng">
-                    <button type="submit" disabled id="submit-button" class="guess-button">Подтвердить выбор</button>
-                </form>
-            </div>
-        </div>
-
-        <script>
-            const realLat = {{ real_lat }};
-            const realLng = {{ real_lng }};
-
-            function loadSatelliteImage() {
-                const container = document.querySelector('.left-panel');
-                const width = Math.min(Math.floor(container.clientWidth), 650);
-                const height = Math.min(Math.floor(container.clientHeight), 450);
-                const url = `https://static-maps.yandex.ru/1.x/?ll=${realLng},${realLat}&z=15&size=${width},${height}&l=sat`;
-                document.getElementById('satelliteImage').src = url;
-            }
-
-            window.addEventListener('resize', loadSatelliteImage);
-            window.addEventListener('load', loadSatelliteImage);
-
-            var map = L.map('map').setView([20, 0], 2);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            var marker;
-
-            map.on('click', function(e) {
-                const lat = e.latlng.lat.toFixed(6);
-                const lng = e.latlng.lng.toFixed(6);
-
-                if (marker) {
-                    marker.setLatLng([lat, lng]);
-                } else {
-                    marker = L.marker([lat, lng]).addTo(map);
-                }
-
-                document.getElementById('guess_lat').value = lat;
-                document.getElementById('guess_lng').value = lng;
-                document.getElementById('submit-button').disabled = false;
-            });
-        </script>
-    </body>
-    </html>
-    """, real_lat=real_lat, real_lng=real_lng)
+    return render_template('quick_game.html', real_lat=real_lat, real_lng=real_lng)
 
 
-# === Результат быстрой игры ===
-@app.route('/quick-result')
-def quick_result():
-    real_lat = float(request.args.get('real_lat'))
-    real_lng = float(request.args.get('real_lng'))
-    guess_lat = float(request.args.get('guess_lat'))
-    guess_lng = float(request.args.get('guess_lng'))
-    distance = float(request.args.get('distance'))
-
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Результат</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <style>
-            body { margin: 0; font-family: Arial; background: #222; color: white; }
-            .game-container { display: flex; height: 100vh; }
-            .left-panel, .right-panel { flex: 1; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-            .left-panel { background: #111; }
-            .right-panel { background: #1e1e1e; }
-            .guess-map { width: 90%; height: 500px; border-radius: 10px; }
-            .guess-button { margin-top: 20px; padding: 15px 30px; font-size: 18px; background-color: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        </style>
-    </head>
-    <body>
-        <div class="game-container">
-            <div class="left-panel">
-                <div>
-                    <h2>Результат быстрой игры</h2>
-                    <p>Твоя отметка была на расстоянии:</p>
-                    <h1>{{ distance | round(2) }} км</h1>
-
-                    <div>
-                        <a href="/quick-game"><button class="guess-button">Играть ещё раз</button></a>
-                        <a href="/"><button class="guess-button">В меню</button></a>
-                    </div>
-                </div>
-            </div>
-            <div class="right-panel">
-                <div id="result-map" class="guess-map"></div>
-            </div>
-        </div>
-
-        <script>
-            var map = L.map('result-map').setView([{{ real_lat }}, {{ real_lng }}], 2);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-            var realMarker = L.marker([{{ real_lat }}, {{ real_lng }}]).addTo(map).bindPopup('Правильное место').openPopup();
-            var guessMarker = L.marker([{{ guess_lat }}, {{ guess_lng }}]).addTo(map).bindPopup('Твоя отметка');
-
-            var line = L.polyline([
-                [{{ real_lat }}, {{ real_lng }}],
-                [{{ guess_lat }}, {{ guess_lng }}]
-            ], { color: 'red' }).addTo(map);
-
-            var group = new L.featureGroup([realMarker, guessMarker]);
-            map.fitBounds(group.getBounds(), { padding: [50, 50] });
-        </script>
-    </body>
-    </html>
-    """, real_lat=real_lat, real_lng=real_lng, guess_lat=guess_lat, guess_lng=guess_lng, distance=distance)
-
-
-# === Вспомогательные функции ===
 def generate_valid_coordinates():
-    """Генерация координат с проверкой доступности снимка"""
-    for attempt in range(20):  # не более 20 попыток
-        lat = random.uniform(-40, 60)
+    """
+    Генерация случайных координат на планете Земля.
+    Здесь можно добавить проверку на корректность снимка.
+    """
+    while True:
+        lat = random.uniform(-40, 60)  # избегаем полюсов
         lng = random.uniform(-10, 40)
 
+        # Можем проверить координаты на доступность, если есть API
         if validate_coordinates(lat, lng):
-            print(f"Координаты найдены: lat={lat}, lng={lng}")
             return lat, lng
-
-    # Если после 20 попыток не нашли — возвращаем последние с предупреждением
-    print("Не удалось найти валидные координаты. Возвращаю последние.")
-    return lat, lng
 
 
 def validate_coordinates(lat, lng):
-    """Проверяем, что снимок существует на сервере Яндекс"""
+    """
+    Проверка валидности координат (доступность спутникового снимка)
+    """
     url = f"https://static-maps.yandex.ru/1.x/?ll={lng},{lat}&z=15&size=450,450&l=sat"
     try:
         response = requests.get(url, timeout=3)
         if response.status_code == 200 and b'error' not in response.content:
             return True
-    except requests.RequestException as e:
-        print(f"Ошибка запроса Yandex API: {e}")
-    return False
+        else:
+            return False
+    except requests.RequestException:
+        return False
 
 
 def calculate_distance(lat1, lng1, lat2, lng2):
-    from math import radians, sin, cos, sqrt, atan2
-    R = 6371.0
+    return ((lat1 - lat2) ** 2 + (lng1 - lng2) ** 2) ** 0.5 * 111
 
-    dlat = radians(lat2 - lat1)
-    dlng = radians(lng2 - lng1)
-    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlng / 2) ** 2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = R * c
-    return distance
+
+def calculate_points(distance):
+    if distance < 10:
+        return 5000
+    elif distance < 100:
+        return 4000
+    elif distance < 500:
+        return 3000
+    elif distance < 1000:
+        return 2000
+    else:
+        return 1000
 
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()  # Создаем таблицы при запуске сервера
     app.run(debug=True)

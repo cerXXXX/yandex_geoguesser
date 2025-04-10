@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% set game_page = True %}
+
+{% block content %}
+<div class="game-page">
+    <div class="game-container">
+
+        <!-- Левая панель: спутниковый снимок -->
+        <div class="left-panel">
+            <img id="satelliteImage" alt="Спутниковый снимок" class="satellite-image full">
+        </div>
+
+        <!-- Правая панель: карта и кнопка -->
+        <div class="right-panel">
+            <div id="map" class="guess-map"></div>
+
+            <form id="guess-form" method="post">
+                <input type="hidden" name="guess_lat" id="guess_lat">
+                <input type="hidden" name="guess_lng" id="guess_lng">
+                <button type="submit" disabled id="submit-button" class="guess-button">Подтвердить выбор</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<!-- Leaflet карты -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const imgElement = document.getElementById('satelliteImage');
+        const container = document.querySelector('.left-panel');
+
+        function updateSatelliteImage() {
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+
+            const maxWidth = 650;   // ограничения Яндекс Карт
+            const maxHeight = 450;
+
+            const finalWidth = Math.min(width, maxWidth);
+            const finalHeight = Math.min(height, maxHeight);
+
+            const realLat = {{ real_lat }};
+            const realLng = {{ real_lng }};
+            const zoom = 15;
+
+            const imgSrc = `https://static-maps.yandex.ru/1.x/?ll=${realLng},${realLat}&z=${zoom}&size=${finalWidth},${finalHeight}&l=sat`;
+
+            imgElement.src = imgSrc;
+        }
+
+        // Загружаем изображение при первой загрузке страницы
+        updateSatelliteImage();
+
+        // (опционально) пересчитываем при изменении размера окна
+        window.addEventListener('resize', function() {
+            updateSatelliteImage();
+        });
+
+        // Leaflet map
+        var map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        var marker;
+
+        map.on('click', function(e) {
+            var lat = e.latlng.lat.toFixed(6);
+            var lng = e.latlng.lng.toFixed(6);
+
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+
+            document.getElementById('guess_lat').value = lat;
+            document.getElementById('guess_lng').value = lng;
+            document.getElementById('submit-button').disabled = false;
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-wrapper">
+    <h2>Итоги игры</h2>
+    <p>Ваш итоговый счет: {{ score }} очков</p>
+    <a href="{{ url_for('leaderboard') }}"><button>Таблица лидеров</button></a><br><br>
+    <a href="{{ url_for('menu') }}"><button>Главное меню</button></a>
+</div>
+{% endblock %}

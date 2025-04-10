@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-wrapper">
+    <h2>Результаты раунда</h2>
+    <p>Твоя точка была {{ round_entry.distance | round(2) }} км от правильной!</p>
+    <p>Очков за раунд: {{ round_entry.points }}</p>
+    <div id="result-map" style="height: 400px; width: 100%; margin: 20px auto;"></div>
+
+    <a href="{{ url_for('game') }}"><button>Следующий раунд</button></a>
+    <a href="{{ url_for('finish_game') }}"><button>Завершить игру</button></a>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var realLat = {{ round_entry.real_lat }};
+        var realLng = {{ round_entry.real_lng }};
+        var guessLat = {{ round_entry.guess_lat }};
+        var guessLng = {{ round_entry.guess_lng }};
+
+        var map = L.map('result-map').setView([realLat, realLng], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
+
+        var realMarker = L.marker([realLat, realLng]).addTo(map)
+            .bindPopup('Правильное место').openPopup();
+        var guessMarker = L.marker([guessLat, guessLng]).addTo(map)
+            .bindPopup('Твой выбор').openPopup();
+
+        var line = L.polyline([
+            [realLat, realLng],
+            [guessLat, guessLng]
+        ], {color: 'red'}).addTo(map);
+
+        var group = new L.featureGroup([realMarker, guessMarker]);
+        map.fitBounds(group.getBounds().pad(0.5));
+    });
+</script>
+{% endblock %}
