@@ -43,11 +43,14 @@ def register():
             flash('Email уже зарегистрирован.')
             return redirect(url_for('register'))
 
+        if User.query.filter_by(nickname=nickname).first():
+            flash('Никнейм уже занят!')
+            return redirect(url_for('register'))
+
         hashed_password = generate_password_hash(password)
         new_user = User(email=email, password=hashed_password, nickname=nickname)
         db.session.add(new_user)
         db.session.commit()
-        flash('Вы зарегистрированы!')
         return redirect(url_for('login'))
 
     return render_template('register.html')
@@ -56,16 +59,16 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('menu'))  # ✅ Перенаправляем, если уже залогинен
+        return redirect(url_for('menu'))
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        remember = True if request.form.get('remember') else False  # <== добавляем флажок
+        remember = True if request.form.get('remember') else False
 
         user = User.query.filter_by(email=email).first()
 
         if user and check_password_hash(user.password, password):
-            login_user(user, remember=remember)  # <== флаг remember тут!
+            login_user(user, remember=remember)
             return redirect(url_for('menu'))
         else:
             flash('Неверные учетные данные.')

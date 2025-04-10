@@ -301,3 +301,44 @@ form button:hover {
         height: auto;
     }
 }
+
+.flash-messages {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.flash-error {
+    background-color: #f8d7da; /* Красный фон для ошибок */
+    color: #721c24; /* Темно-красный цвет текста */
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 1rem;
+    border: 1px solid #f5c6cb;
+    margin: 10px 0;
+}
+
+.flash-messages {
+    margin-bottom: 20px;
+}
+
+.flash {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.flash.error {
+    background-color: #f8d7da; /* Светло-красный фон */
+    color: #721c24; /* Темно-красный текст */
+}
+
+.flash.success {
+    background-color: #d4edda; /* Светло-зеленый фон */
+    color: #155724; /* Темно-зеленый текст */
+}
+
+.flash.info {
+    background-color: #cce5ff; /* Светло-голубой фон */
+    color: #004085; /* Темно-синий текст */
+}

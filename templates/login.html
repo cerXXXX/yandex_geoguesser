@@ -4,6 +4,16 @@
 <div class="page-wrapper">
     <h2>Вход в аккаунт</h2>
 
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <p class="flash-error">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
     <form method="post" action="{{ url_for('login') }}">
         <input type="email" name="email" placeholder="Email" required><br>
         <input type="password" name="password" placeholder="Пароль" required><br>
