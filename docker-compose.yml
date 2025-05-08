@@ -1,5 +1,5 @@
 services:
-  geoguesser:
+  app:
     build: .
     container_name: geoguesser
     restart: always
