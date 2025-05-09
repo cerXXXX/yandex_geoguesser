@@ -31,4 +31,8 @@ def create_app():
     from .api.endpoints import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
+    # необходимо создать БД и все таблицы здесь, т.к при работе gunicorn в run.py она не создастся (точка входа другая)
+    with app.app_context():
+        db.create_all()
+
     return app
