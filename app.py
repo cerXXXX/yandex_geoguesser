@@ -135,7 +135,8 @@ def game():
     session['real_lng'] = real_lng
 
     # TODO: Добавить API Яндекса для получения снимков
-    return render_template('game.html', real_lat=real_lat, real_lng=real_lng)
+    map_size = random.randint(7, 12)
+    return render_template('game.html', real_lat=real_lat, real_lng=real_lng, map_size=map_size)
 
 
 @app.route('/round_result/<int:round_id>')
