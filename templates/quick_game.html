@@ -46,6 +46,13 @@
         var map = new ymaps.Map('map', {
           center: [20, 0], zoom: 2, controls: []
         });
+        // после создания карты подгоняем размер
+        map.container.fitToViewport();
+
+        // если вы динамически меняете CSS-размеры контейнера (на resize):
+        window.addEventListener('resize', function() {
+          map.container.fitToViewport();
+        });
         var marker;
         map.events.add('click', function(e) {
           var coords = e.get('coords'),

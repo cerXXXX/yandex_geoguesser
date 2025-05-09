@@ -10,6 +10,16 @@ html, body {
     overflow-x: hidden;
 }
 
+/* базовый размер шрифта подстраивается под ширину экрана */
+html {
+  font-size: calc(12px + 0.5vw);
+}
+body {
+  line-height: 1.4;
+  overflow-x: hidden;
+}
+
+
 header {
     height: 60px;
     background-color: #333;
@@ -206,6 +216,17 @@ th, td {
     color: #ff6347; /* Томато */
     margin-bottom: 20px;
 }
+/* убираем подчёркивание со всех ссылок */
+a {
+  text-decoration: none;
+  color: inherit;  /* сохраняет цвет кнопки/текста */
+}
+
+/* если у вас есть <a><button>…</button></a>, можно уточнить */
+a button {
+  text-decoration: none;
+}
+
 
 .result-buttons a {
     display: inline-block;

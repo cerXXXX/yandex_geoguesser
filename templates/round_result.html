@@ -36,7 +36,13 @@
       var map = new ymaps.Map('result-map', {
         center: real, zoom: 2, controls: []
       });
+      // после создания карты подгоняем размер
+      map.container.fitToViewport();
 
+      // если вы динамически меняете CSS-размеры контейнера (на resize):
+      window.addEventListener('resize', function() {
+        map.container.fitToViewport();
+      });
       var realMark = new ymaps.Placemark(real, { hintContent: 'Правильное место' }, {
         preset: 'islands#greenDotIcon'
       });
