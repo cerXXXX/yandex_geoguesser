@@ -8,11 +8,11 @@
       <h2>Результат быстрой игры</h2>
       <p>Расстояние: {{ distance | round(2) }} км</p>
       <div class="result-buttons">
-        <a href="{{ url_for('quick_game') }}"><button class="guess-button">Играть ещё раз</button></a>
+        <a href="{{ url_for('quick_game.quick_game') }}"><button class="guess-button">Играть ещё раз</button></a>
         {% if current_user.is_authenticated %}
-          <a href="{{ url_for('menu') }}"><button class="guess-button">В меню</button></a>
+          <a href="{{ url_for('menu.menu') }}"><button class="guess-button">В меню</button></a>
         {% else %}
-          <a href="{{ url_for('login') }}"><button class="guess-button">Назад</button></a>
+          <a href="{{ url_for('auth.login') }}"><button class="guess-button">Назад</button></a>
         {% endif %}
       </div>
     </div>

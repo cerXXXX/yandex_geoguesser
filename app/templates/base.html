@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="{% if game_page %}game-active{% endif %}">
     <header>
         <h1>GeoGuesser</h1>
         {% if current_user.is_authenticated %}
             <div class="user-info">
-                Привет, {{ current_user.nickname }} | <a href="{{ url_for('logout') }}">Выйти</a>
+                Привет, {{ current_user.nickname }} | <a href="{{ url_for('auth.logout') }}">Выйти</a>
             </div>
         {% endif %}
     </header>
@@ -23,6 +23,5 @@
             <p>&copy; 2025 GeoGuesser. Все права не защищены.</p>
         </footer>
     {% endif %}
-
 </body>
 </html>

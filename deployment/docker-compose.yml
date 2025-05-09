@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: geoguesser
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      # Переменные среды, можно переопределить при деплое
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+      # - SECRET_KEY=your_secret_key_here
+      # - DATABASE_URL=sqlite:///app.db  # если потребуется
+    volumes:
+      - .:/app   # для разработки; в продакшн можно убрать, чтобы не монтировать код

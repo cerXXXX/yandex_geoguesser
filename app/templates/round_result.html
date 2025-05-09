@@ -9,8 +9,8 @@
       <p>Расстояние: {{ round_entry.distance | round(2) }} км</p>
       <p>Очки: {{ round_entry.points }}</p>
       <div class="result-buttons">
-        <a href="{{ url_for('game') }}"><button class="guess-button">Следующий раунд</button></a>
-        <a href="{{ url_for('finish_game') }}"><button class="guess-button">Завершить игру</button></a>
+        <a href="{{ url_for('game.game') }}"><button class="guess-button">Следующий раунд</button></a>
+        <a href="{{ url_for('game.finish_game') }}"><button class="guess-button">Завершить игру</button></a>
       </div>
     </div>
     <div class="right-panel">

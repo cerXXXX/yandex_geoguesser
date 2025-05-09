@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-wrapper">
+    <h2>Главное меню</h2>
+
+        {% if unfinished_game %}
+        <a href="{{ url_for('game.game') }}"><button>Продолжить игру</button></a><br><br>
+    {% else %}
+        <a href="{{ url_for('game.start_game') }}"><button>Начать новую игру</button></a><br><br>
+    {% endif %}
+
+    <a href="{{ url_for('quick_game.quick_game') }}"><button>Быстрая игра</button></a><br><br>
+
+    <a href="{{ url_for('menu.leaderboard') }}"><button>Таблица лидеров</button></a><br><br>
+    <a href="{{ url_for('auth.logout') }}"><button>Выход</button></a>
+</div>
+{% endblock %}

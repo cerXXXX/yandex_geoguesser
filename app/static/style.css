@@ -22,6 +22,11 @@ body {
     overflow-y: auto;
 }
 
+/* Отключаем прокрутку на странице с игрой */
+body.game-active {
+    overflow: hidden;
+}
+
 a {
     text-decoration: none;
     color: inherit;
@@ -29,7 +34,7 @@ a {
 
 /* === Шапка и футер === */
 header {
-    height: 60px;
+    height: 80px; /* увеличенная высота шапки */
     background-color: #333;
     color: white;
     display: flex;
@@ -39,10 +44,10 @@ header {
 }
 header h1 {
     margin: 0;
-    font-size: 1.8rem;
+    font-size: 2rem; /* чуть больший размер заголовка */
 }
 .user-info {
-    font-size: 0.9rem;
+    font-size: 1rem; /* чуть увеличенный размер текста */
 }
 footer {
     text-align: center;
@@ -118,7 +123,7 @@ input[type="number"] {
 .page-wrapper {
     background-color: #fff;
     padding: 40px;
-    margin: 60px auto;
+    margin: 80px auto; /* отступ учитывает новую высоту шапки */
     max-width: 500px;
     border-radius: 12px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
@@ -133,9 +138,10 @@ input[type="number"] {
 .game-page {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
+    /* высота контейнера игры с учетом новой шапки */
+    height: calc(100vh - 80px);
     background-color: #222;
+    overflow: hidden;
 }
 .game-page .game-container {
     flex: 1;
@@ -285,4 +291,25 @@ form button:hover {
 .flash.info {
     background-color: #cce5ff;
     color: #004085;
+}
+.user-info {
+    font-size: 0.9rem;
+    color: inherit; /* или #333 — основной цвет текста */
+}
+
+.user-info a {
+    color: #007BFF !important;       /* только ссылка синяя */
+    text-decoration: underline;
+}
+
+.user-info a:hover {
+    color: #0056b3 !important;
+}
+.auth-note a {
+    color: #007BFF;
+    text-decoration: underline;
+    font-weight: 500;
+}
+.auth-note a:hover {
+    color: #0056b3;
 }
