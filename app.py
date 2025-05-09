@@ -149,20 +149,27 @@ def round_result(round_id):
 @app.route('/finish_game')
 @login_required
 def finish_game():
-    game_id = session.get('game_id')
+    # Достаём game_id и сразу удаляем из сессии
+    game_id = session.pop('game_id', None)
     if not game_id:
         return redirect(url_for('menu'))
 
+    # Считаем итоговый счёт
     rounds = Round.query.filter_by(game_id=game_id).all()
     total_score = sum(r.points for r in rounds)
 
-    print(game_id)
+    # Сохраняем результат в БД
     game = Game.query.get(game_id)
-    print(game)
     game.score = total_score
     db.session.commit()
 
+    # Можно почистить координаты из сессии (не обязательно)
+    session.pop('real_lat', None)
+    session.pop('real_lng', None)
+
+    # Отрисовываем итоговый экран
     return render_template('game_result.html', score=total_score)
+
 
 
 @app.route('/leaderboard')
