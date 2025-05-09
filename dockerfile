@@ -20,5 +20,4 @@ ENV FLASK_ENV=production
 # Expose порт
 EXPOSE 5000
 
-# Запускаем через Gunicorn: точка входа — переменная `app` в файле app.py
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "run:app"]
