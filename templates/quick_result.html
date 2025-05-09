@@ -13,7 +13,11 @@
 
             <div class="result-buttons">
                 <a href="{{ url_for('quick_game') }}"><button class="guess-button">Играть ещё раз</button></a>
-                <a href="{{ url_for('menu') }}"><button class="guess-button">В меню</button></a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('menu') }}"><button class="guess-button">В меню</button></a>
+                {% else %}
+                    <a href="{{ url_for('login') }}"><button class="guess-button">Вход</button></a>
+                {% endif %}
             </div>
         </div>
 

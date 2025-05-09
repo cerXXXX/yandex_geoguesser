@@ -6,9 +6,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import datetime
 import requests
+from api import api_bp
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.register_blueprint(api_bp)
 
 db.init_app(app)
 
