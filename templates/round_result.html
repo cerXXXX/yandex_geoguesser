@@ -1,41 +1,58 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="page-wrapper">
-    <h2>Результаты раунда</h2>
-    <p>Твоя точка была {{ round_entry.distance | round(2) }} км от правильной!</p>
-    <p>Очков за раунд: {{ round_entry.points }}</p>
-    <div id="result-map" style="height: 400px; width: 100%; margin: 20px auto;"></div>
+{% set game_page = True %}
 
-    <a href="{{ url_for('game') }}"><button>Следующий раунд</button></a>
-    <a href="{{ url_for('finish_game') }}"><button>Завершить игру</button></a>
+{% block content %}
+<div class="game-page">
+    <div class="game-container">
+        <!-- Левая панель: информация и кнопки -->
+        <div class="left-panel" style="flex-direction: column; justify-content: center;">
+            <h2>Результат раунда</h2>
+            <p>Расстояние до правильной точки:</p>
+            <h1>{{ round_entry.distance | round(2) }} км</h1>
+            <p>Очков за раунд: {{ round_entry.points }}</p>
+            <div class="result-buttons">
+                <a href="{{ url_for('game') }}">
+                    <button class="guess-button">Следующий раунд</button>
+                </a>
+                <a href="{{ url_for('finish_game') }}">
+                    <button class="guess-button">Завершить игру</button>
+                </a>
+            </div>
+        </div>
+
+        <!-- Правая панель: карта -->
+        <div class="right-panel">
+            <div id="result-map" class="guess-map"></div>
+        </div>
+    </div>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var realLat = {{ round_entry.real_lat }};
-        var realLng = {{ round_entry.real_lng }};
-        var guessLat = {{ round_entry.guess_lat }};
-        var guessLng = {{ round_entry.guess_lng }};
+    ymaps.ready(function() {
+      var real = [{{ round_entry.real_lat }}, {{ round_entry.real_lng }}],
+          guess = [{{ round_entry.guess_lat }}, {{ round_entry.guess_lng }}];
 
-        var map = L.map('result-map').setView([realLat, realLng], 2);
+      var map = new ymaps.Map('result-map', {
+        center: real, zoom: 2, controls: []
+      });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
+      var realMark = new ymaps.Placemark(real, { hintContent: 'Правильное место' }, {
+        preset: 'islands#greenDotIcon'
+      });
+      var guessMark = new ymaps.Placemark(guess, { hintContent: 'Твой выбор' }, {
+        preset: 'islands#redDotIcon'
+      });
+      map.geoObjects.add(realMark).add(guessMark);
 
-        var realMarker = L.marker([realLat, realLng]).addTo(map)
-            .bindPopup('Правильное место').openPopup();
-        var guessMarker = L.marker([guessLat, guessLng]).addTo(map)
-            .bindPopup('Твой выбор').openPopup();
+      var line = new ymaps.Polyline([ real, guess ], {}, {
+        strokeColor: '#FF0000', strokeWidth: 4, strokeOpacity: 0.7
+      });
+      map.geoObjects.add(line);
 
-        var line = L.polyline([
-            [realLat, realLng],
-            [guessLat, guessLng]
-        ], {color: 'red'}).addTo(map);
-
-        var group = new L.featureGroup([realMarker, guessMarker]);
-        map.fitBounds(group.getBounds().pad(0.5));
+      // Подогнать область просмотра под оба маркера
+      var bounds = ymaps.geoQuery([realMark, guessMark]).getBounds();
+      map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 20 });
     });
 </script>
 {% endblock %}

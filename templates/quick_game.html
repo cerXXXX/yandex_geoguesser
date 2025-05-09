@@ -7,9 +7,7 @@
 
         <!-- Левая панель: спутниковый снимок -->
         <div class="left-panel">
-            <img src="https://static-maps.yandex.ru/1.x/?ll={{ real_lng }},{{ real_lat }}&z={{ map_size }}&size=600,400&l=sat"
-                 alt="Спутниковый снимок"
-                 class="satellite-image full">
+            <img id="satelliteImage" class="satellite-image full" alt="Спутниковый снимок">
         </div>
 
         <!-- Правая панель: карта и кнопка -->
@@ -26,35 +24,41 @@
     </div>
 </div>
 
-<!-- Leaflet карты -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <script>
+    // загрузка спутникового изображения
     document.addEventListener('DOMContentLoaded', function() {
-        var map = L.map('map', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView([20, 0], 2);
+      const imgEl = document.getElementById('satelliteImage'),
+            cont  = document.querySelector('.left-panel'),
+            realLat = {{ real_lat }}, realLng = {{ real_lng }},
+            zoom = {{ map_size }};
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      function updateImg() {
+        const w = Math.min(cont.clientWidth, 650),
+              h = Math.min(cont.clientHeight, 450);
+        imgEl.src = `https://static-maps.yandex.ru/1.x/?ll=${realLng},${realLat}&z=${zoom}&size=${w},${h}&l=sat`;
+      }
+      updateImg();
+      window.addEventListener('resize', updateImg);
 
-        var marker;
-
-        map.on('click', function(e) {
-            var lat = e.latlng.lat.toFixed(6);
-            var lng = e.latlng.lng.toFixed(6);
-
-            if (marker) {
-                marker.setLatLng([lat, lng]);
-            } else {
-                marker = L.marker([lat, lng]).addTo(map);
-            }
-
-            document.getElementById('guess_lat').value = lat;
-            document.getElementById('guess_lng').value = lng;
-            document.getElementById('submit-button').disabled = false;
+      // инициализация Яндекс.Карт
+      ymaps.ready(function() {
+        var map = new ymaps.Map('map', {
+          center: [20, 0], zoom: 2, controls: []
         });
+        var marker;
+        map.events.add('click', function(e) {
+          var coords = e.get('coords'),
+              lat = coords[0].toFixed(6),
+              lng = coords[1].toFixed(6);
+          if (marker) map.geoObjects.remove(marker);
+          marker = new ymaps.Placemark([lat, lng], {}, { preset: 'islands#redDotIcon' });
+          map.geoObjects.add(marker);
+          document.getElementById('guess_lat').value = lat;
+          document.getElementById('guess_lng').value = lng;
+          document.getElementById('submit-button').disabled = false;
+        });
+      });
     });
 </script>
 {% endblock %}
