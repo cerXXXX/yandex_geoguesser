@@ -1,24 +1,26 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="page-wrapper">
+<div class="leaderboard-wrapper">
     <h2>Таблица лидеров</h2>
-    <table>
-        <tr>
-            <th>Место</th>
-            <th>Никнейм</th>
-            <th>Счет</th>
-            <th>Дата</th>
-        </tr>
-        {% for game in games %}
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ game.user.nickname }}</td>
-            <td>{{ game.score }}</td>
-            <td>{{ game.date.strftime('%Y-%m-%d %H:%M') }}</td>
-        </tr>
-        {% endfor %}
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Игрок</th>
+                <th>Очки</th>
+                <th>Дата</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for game in games %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ game.user.nickname }}</td>
+                <td>{{ game.score }}</td>
+                <td>{{ game.date.strftime('%d.%m.%Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-    <br>
-    <a href="{{ url_for('menu.menu') }}"><button>Главное меню</button></a>
 </div>
 {% endblock %}
