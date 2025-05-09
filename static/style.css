@@ -1,5 +1,5 @@
-/* === Глобальные стили === */
-html, body {
+/* === Общие стили === */
+html {
     height: 100%;
     width: 100%;
     margin: 0;
@@ -7,18 +7,23 @@ html, body {
     font-family: Arial, sans-serif;
     background-color: #f5f5f5;
     color: #333;
-    overflow-x: hidden;
+    overflow: hidden;                     /* убрали прокрутку */
+    font-size: calc(12px + 0.5vw);        /* адаптивный размер шрифта */
+    line-height: 1.4;
 }
 
-/* базовый размер шрифта подстраивается под ширину экрана */
-html {
-  font-size: calc(12px + 0.5vw);
-}
 body {
-  line-height: 1.4;
-  overflow-x: hidden;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
+a {
+    text-decoration: none;               /* убрали подчёркивание */
+    color: inherit;
+}
 
 header {
     height: 60px;
@@ -118,18 +123,19 @@ th, td {
 
 /* === Игровая страница === */
 .game-page {
-    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;           /* полная высота экрана */
     overflow: hidden;
     background-color: #222;
 }
 
 .game-page .game-container {
+    flex: 1;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: stretch;
-    width: 100%;
-    height: calc(100vh - 60px);
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -164,13 +170,15 @@ th, td {
     padding: 20px;
 }
 
+/* Карта выбора */
 .guess-map {
     width: 90%;
-    height: 500px; /* увеличил карту по высоте */
+    height: 500px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
+/* Кнопка подтверждения */
 .guess-button {
     padding: 16px 32px;
     font-size: 1.2rem;
@@ -188,77 +196,32 @@ th, td {
     cursor: not-allowed;
 }
 
-@media screen and (max-width: 1200px) {
-    .game-page .game-container {
-        flex-direction: column;
-    }
+/* === Страница результатов раунда и быстрой игры === */
+.result-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
-    .game-page .left-panel,
-    .game-page .right-panel {
-        width: 100%;
-        height: 50%;
-    }
+.result-buttons a {
+    margin: 10px 0;
+}
 
-    .game-page .guess-map {
-        width: 80%;
-        height: 300px;
-    }
-
-    .game-page .satellite-image.full {
-        width: 100%;
-        height: 100%;
-    }
+.result-buttons button {
+    width: 90%;
+    max-width: 300px;
+    font-size: 1.2rem;
+    padding: 16px 0;
 }
 
 /* === Стили для страницы быстрого результата === */
 .quick-result h1 {
     font-size: 2rem;
-    color: #ff6347; /* Томато */
+    color: #ff6347;
     margin-bottom: 20px;
 }
-/* убираем подчёркивание со всех ссылок */
-a {
-  text-decoration: none;
-  color: inherit;  /* сохраняет цвет кнопки/текста */
-}
 
-/* если у вас есть <a><button>…</button></a>, можно уточнить */
-a button {
-  text-decoration: none;
-}
-
-
-.result-buttons a {
-    display: inline-block;
-    margin: 10px;
-}
-
-.result-buttons button {
-    padding: 12px 24px;
-    font-size: 1.1rem;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.result-buttons button:hover {
-    background-color: #45a049;
-}
-
-/* === Страница регистрации === */
-input[type="email"],
-input[type="password"],
-input[type="text"] {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-
+/* === Страница регистрации и входа === */
 form button {
     width: 100%;
     padding: 16px;
@@ -274,66 +237,29 @@ form button:hover {
     background-color: #45a049;
 }
 
-/* === Страница результатов раунда === */
+/* === Результат раунда: контейнер карты === */
 #result-map {
     width: 100%;
     height: 400px;
     margin: 20px auto;
 }
 
-#result-map .leaflet-container {
-    height: 100%;
-}
-
-/* === Мобильная адаптивность (смартфоны) === */
+/* Убираем Leaflet-контейнер, теперь не нужен */
+/* === Мобильная адаптивность === */
 @media screen and (max-width: 768px) {
-    /* Общие поправки для body и контейнеров */
-    html, body {
-        overflow-x: hidden;
-    }
-
-    header {
-        flex-direction: column;
-        align-items: center;
-        height: auto;
-        padding: 10px;
-    }
-    header h1 {
-        font-size: 1.6rem;
-    }
-
-    /* Центрирование контента без боковых отступов */
-    .page-wrapper {
-        padding: 20px;
-        margin: 20px auto;
-        max-width: 100%;
-    }
-
-    /* Игровая страница: вертикальный стек */
     .game-page .game-container {
         flex-direction: column;
-        height: auto;
     }
     .game-page .left-panel,
     .game-page .right-panel {
         width: 100%;
-        height: 50vh;   /* каждая панель по половине экрана */
+        height: 50vh;       /* по половине экрана */
         padding: 10px;
     }
-
-    /* Спутниковый снимок */
-    .game-page .satellite-image.full {
-        width: 100%;
-        height: 100%;
-    }
-
-    /* Карта */
     .guess-map {
         width: 100%;
         height: 40vh;
     }
-
-    /* Кнопки — максимум ширины, крупнее и повыше */
     .guess-button,
     .result-buttons button,
     button {
@@ -344,20 +270,15 @@ form button:hover {
         margin: 10px auto;
         display: block;
     }
-
-    /* Форма логина/регистрации */
     input[type="email"],
     input[type="password"],
-    input[type="text"],
-    form button {
+    input[type="text"] {
         width: 90%;
         max-width: 400px;
         padding: 16px;
         margin: 10px auto;
         font-size: 1.1rem;
     }
-
-    /* Текст и заголовки */
     h1, h2, h3 {
         font-size: 1.4rem;
         margin: 10px 0;
@@ -365,22 +286,20 @@ form button:hover {
     p, td, th {
         font-size: 1rem;
     }
-
-    /* Лидерборд и таблицы */
     table, th, td {
         font-size: 0.9rem;
     }
 }
 
-
+/* Сообщения Flash */
 .flash-messages {
     margin-bottom: 20px;
     text-align: center;
 }
 
-.flash-error {
-    background-color: #f8d7da; /* Красный фон для ошибок */
-    color: #721c24; /* Темно-красный цвет текста */
+.flash-error, .flash.error {
+    background-color: #f8d7da;
+    color: #721c24;
     padding: 15px;
     border-radius: 6px;
     font-size: 1rem;
@@ -388,28 +307,12 @@ form button:hover {
     margin: 10px 0;
 }
 
-.flash-messages {
-    margin-bottom: 20px;
-}
-
-.flash {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    text-align: center;
-}
-
-.flash.error {
-    background-color: #f8d7da; /* Светло-красный фон */
-    color: #721c24; /* Темно-красный текст */
-}
-
 .flash.success {
-    background-color: #d4edda; /* Светло-зеленый фон */
-    color: #155724; /* Темно-зеленый текст */
+    background-color: #d4edda;
+    color: #155724;
 }
 
 .flash.info {
-    background-color: #cce5ff; /* Светло-голубой фон */
-    color: #004085; /* Темно-синий текст */
+    background-color: #cce5ff;
+    color: #004085;
 }

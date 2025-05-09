@@ -3,69 +3,59 @@
 
 {% block content %}
 <div class="game-page">
-    <div class="game-container">
-
-        <!-- Левая панель: спутниковый снимок -->
-        <div class="left-panel">
-            <img id="satelliteImage" class="satellite-image full" alt="Спутниковый снимок">
-        </div>
-
-        <!-- Правая панель: карта и кнопка -->
-        <div class="right-panel">
-            <div id="map" class="guess-map"></div>
-
-            <form id="guess-form" method="post">
-                <input type="hidden" name="guess_lat" id="guess_lat">
-                <input type="hidden" name="guess_lng" id="guess_lng">
-                <button type="submit" disabled id="submit-button" class="guess-button">Подтвердить выбор</button>
-            </form>
-        </div>
-
+  <div class="game-container">
+    <div class="left-panel">
+      <img id="satelliteImage" class="satellite-image full" alt="Спутниковый снимок">
     </div>
+    <div class="right-panel">
+      <div id="map" class="guess-map"></div>
+      <form method="post">
+        <input type="hidden" name="guess_lat" id="guess_lat">
+        <input type="hidden" name="guess_lng" id="guess_lng">
+        <button type="submit" disabled id="submit-button" class="guess-button">Подтвердить выбор</button>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <script>
-    // загрузка спутникового изображения
-    document.addEventListener('DOMContentLoaded', function() {
-      const imgEl = document.getElementById('satelliteImage'),
-            cont  = document.querySelector('.left-panel'),
-            realLat = {{ real_lat }}, realLng = {{ real_lng }},
-            zoom = {{ map_size }};
+  document.addEventListener('DOMContentLoaded', function() {
+    const imgEl = document.getElementById('satelliteImage'),
+          cont  = document.querySelector('.left-panel'),
+          realLat = {{ real_lat }}, realLng = {{ real_lng }},
+          zoom = {{ map_size }};
 
-      function updateImg() {
-        const w = Math.min(cont.clientWidth, 650),
-              h = Math.min(cont.clientHeight, 450);
-        imgEl.src = `https://static-maps.yandex.ru/1.x/?ll=${realLng},${realLat}&z=${zoom}&size=${w},${h}&l=sat`;
-      }
-      updateImg();
-      window.addEventListener('resize', updateImg);
+    function updateImg() {
+      const w = Math.min(cont.clientWidth, 650),
+            h = Math.min(cont.clientHeight, 450);
+      imgEl.src = `https://static-maps.yandex.ru/1.x/?ll=${realLng},${realLat}&z=${zoom}&size=${w},${h}&l=sat`;
+    }
+    updateImg();
+    window.addEventListener('resize', updateImg);
 
-      // инициализация Яндекс.Карт
-      ymaps.ready(function() {
-        var map = new ymaps.Map('map', {
-          center: [20, 0], zoom: 2, controls: []
-        });
-        // после создания карты подгоняем размер
+    ymaps.ready(function() {
+      var map = new ymaps.Map('map', {
+        center: [20, 0], zoom: 2, controls: []
+      });
+      map.container.fitToViewport();
+      window.addEventListener('resize', () => map.container.fitToViewport());
+
+      var marker;
+      map.events.add('click', function(e) {
+        var coords = e.get('coords'),
+            lat = coords[0].toFixed(6),
+            lng = coords[1].toFixed(6);
+        if (marker) map.geoObjects.remove(marker);
+        marker = new ymaps.Placemark([lat, lng], {}, { preset: 'islands#redDotIcon' });
+        map.geoObjects.add(marker);
+
+        document.getElementById('guess_lat').value = lat;
+        document.getElementById('guess_lng').value = lng;
+        document.getElementById('submit-button').disabled = false;
         map.container.fitToViewport();
-
-        // если вы динамически меняете CSS-размеры контейнера (на resize):
-        window.addEventListener('resize', function() {
-          map.container.fitToViewport();
-        });
-        var marker;
-        map.events.add('click', function(e) {
-          var coords = e.get('coords'),
-              lat = coords[0].toFixed(6),
-              lng = coords[1].toFixed(6);
-          if (marker) map.geoObjects.remove(marker);
-          marker = new ymaps.Placemark([lat, lng], {}, { preset: 'islands#redDotIcon' });
-          map.geoObjects.add(marker);
-          document.getElementById('guess_lat').value = lat;
-          document.getElementById('guess_lng').value = lng;
-          document.getElementById('submit-button').disabled = false;
-        });
       });
     });
+  });
 </script>
 {% endblock %}

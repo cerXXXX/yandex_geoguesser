@@ -20,7 +20,6 @@
 
 <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <script>
-  // загрузка спутникового изображения
   document.addEventListener('DOMContentLoaded', function() {
     const imgEl = document.getElementById('satelliteImage'),
           cont  = document.querySelector('.left-panel'),
@@ -35,18 +34,16 @@
     updateImg();
     window.addEventListener('resize', updateImg);
 
-    // инициализация Яндекс.Карт
     ymaps.ready(function() {
       var map = new ymaps.Map('map', {
         center: [20, 0], zoom: 2, controls: []
       });
-      // после создания карты подгоняем размер
       map.container.fitToViewport();
 
-      // если вы динамически меняете CSS-размеры контейнера (на resize):
       window.addEventListener('resize', function() {
         map.container.fitToViewport();
       });
+
       var marker;
       map.events.add('click', function(e) {
         var coords = e.get('coords'),
@@ -55,9 +52,11 @@
         if (marker) map.geoObjects.remove(marker);
         marker = new ymaps.Placemark([lat, lng], {}, { preset: 'islands#redDotIcon' });
         map.geoObjects.add(marker);
+
         document.getElementById('guess_lat').value = lat;
         document.getElementById('guess_lng').value = lng;
         document.getElementById('submit-button').disabled = false;
+        map.container.fitToViewport();
       });
     });
   });
