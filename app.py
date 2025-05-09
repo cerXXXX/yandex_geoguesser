@@ -185,7 +185,7 @@ def quick_game():
     session['real_lat'] = real_lat
     session['real_lng'] = real_lng
 
-    return render_template('quick_game.html', real_lat=real_lat, real_lng=real_lng)
+    return render_template('quick_game.html', real_lat=real_lat, real_lng=real_lng, map_size=random.randint(7, 12))
 
 
 def generate_valid_coordinates():
