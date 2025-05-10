@@ -11,7 +11,7 @@ bp = Blueprint('game', __name__)
 @login_required
 def start_game():
     game = Game(user_id=current_user.id, date=datetime.datetime.now())
-    db.session.add(game);
+    db.session.add(game)
     db.session.commit()
     session['game_id'] = game.id
     return redirect(url_for('game.game'))
@@ -29,7 +29,7 @@ def game():
                     real_lat=real_lat, real_lng=real_lng,
                     guess_lat=lat, guess_lng=lng,
                     distance=dist, points=pts)
-        db.session.add(rnd);
+        db.session.add(rnd)
         db.session.commit()
         return redirect(url_for('game.round_result', round_id=rnd.id))
     real_lat, real_lng = generate_valid_coordinates()
@@ -55,8 +55,8 @@ def finish_game():
     rounds = Round.query.filter_by(game_id=gid).all()
     total = sum(r.points for r in rounds)
     game = Game.query.get(gid)
-    game.score = total;
+    game.score = total
     db.session.commit()
-    session.pop('real_lat', None);
+    session.pop('real_lat', None)
     session.pop('real_lng', None)
     return render_template('game_result.html', score=total)

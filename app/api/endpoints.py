@@ -27,7 +27,7 @@ def create_user():
     user = User(email=data['email'],
                 password=data['password'],
                 nickname=data['nickname'])
-    db.session.add(user);
+    db.session.add(user)
     db.session.commit()
     return jsonify(id=user.id), 201
 
@@ -48,7 +48,7 @@ def create_game():
     g = Game(user_id=data['user_id'],
              date=datetime.datetime.now(),
              score=data.get('score'))
-    db.session.add(g);
+    db.session.add(g)
     db.session.commit()
     return jsonify(id=g.id), 201
 
@@ -76,6 +76,6 @@ def create_round():
               real_lat=data['real_lat'], real_lng=data['real_lng'],
               guess_lat=data['guess_lat'], guess_lng=data['guess_lng'],
               distance=dist, points=pts)
-    db.session.add(r);
+    db.session.add(r)
     db.session.commit()
     return jsonify(id=r.id), 201

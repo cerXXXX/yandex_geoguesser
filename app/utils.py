@@ -4,12 +4,11 @@ import requests
 
 def generate_valid_coordinates():
     """Генерация случайных координат в заданном диапазоне с проверкой."""
-    for _ in range(20):
+    while True:
         lat = random.uniform(-40, 60)
         lng = random.uniform(-10, 40)
         if validate_coordinates(lat, lng):
             return lat, lng
-    return lat, lng
 
 
 def validate_coordinates(lat, lng):
