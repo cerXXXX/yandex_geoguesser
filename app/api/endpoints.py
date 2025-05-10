@@ -1,11 +1,22 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from ..models import db, User, Game, Round
 import datetime
 
 api_bp = Blueprint('api', __name__)
 
 
-# Users
+@api_bp.before_request
+def require_api_key():
+    # разрешаем публичный endpoint для показа ключа, если он у вас есть
+    if request.endpoint and request.endpoint.endswith('show_api_key'):
+        return
+
+    token = request.headers.get('X-API-KEY', '')
+    if not token or token != current_app.config['API_KEY']:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+
+# Пользователи
 @api_bp.route('/users', methods=['GET'])
 def get_users():
     return jsonify([{'id': u.id, 'email': u.email, 'nickname': u.nickname}
@@ -32,7 +43,7 @@ def create_user():
     return jsonify(id=user.id), 201
 
 
-# Games
+# Игры
 @api_bp.route('/games', methods=['GET'])
 def get_games():
     return jsonify([{'id': g.id, 'user_id': g.user_id,
@@ -53,7 +64,7 @@ def create_game():
     return jsonify(id=g.id), 201
 
 
-# Rounds
+# Раунды
 @api_bp.route('/rounds', methods=['GET'])
 def get_rounds():
     return jsonify([{'id': r.id, 'game_id': r.game_id,
@@ -79,3 +90,16 @@ def create_round():
     db.session.add(r)
     db.session.commit()
     return jsonify(id=r.id), 201
+
+
+# === Сброс и пересоздание базы данных ===
+@api_bp.route('/reset-db', methods=['POST'])
+def reset_db():
+    """
+    Полный сброс: удаляем все таблицы и создаём заново.
+    ВНИМАНИЕ: удаляет все данные!
+    """
+
+    db.drop_all()
+    db.create_all()
+    return jsonify(message="Database has been reset and recreated."), 200

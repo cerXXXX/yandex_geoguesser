@@ -9,6 +9,11 @@ login_manager.login_view = 'auth.login'
 
 def create_app():
     app = Flask(__name__)
+
+    from .secret import get_api_key
+    from .cli import register_cli
+    register_cli(app)
+
     app.config.from_object(Config)
 
     db.init_app(app)

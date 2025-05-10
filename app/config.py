@@ -1,4 +1,5 @@
 import os
+from .secret import get_api_key
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -10,3 +11,4 @@ class Config:
         'sqlite:///' + os.path.join(basedir, 'app.db')
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    API_KEY = get_api_key()
