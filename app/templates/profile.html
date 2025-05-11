@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-wrapper">
+  <h2>Мой профиль</h2>
+
+  <form method="post" enctype="multipart/form-data">
+    <div>
+      <label>Текущий аватар:</label><br>
+      {% if user.avatar %}
+        <img src="{{ url_for('static', filename=user.avatar.split('static/')[-1]) }}"
+             alt="Avatar" style="width:100px;height:100px;border-radius:50%;">
+      {% else %}
+        <p>(нет фото)</p>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="avatar">Загрузить новый аватар</label><br>
+      <input type="file" name="avatar" id="avatar" accept="image/*">
+    </div>
+
+    <div>
+      <label for="email">E-mail</label><br>
+      <input type="email" name="email" id="email" value="{{ user.email }}" required>
+    </div>
+
+    <div>
+      <label for="password">Новый пароль</label><br>
+      <input type="password" name="password" id="password">
+    </div>
+    <div>
+      <label for="confirm_password">Подтверждение пароля</label><br>
+      <input type="password" name="confirm_password" id="confirm_password">
+    </div>
+
+    <button type="submit">Сохранить изменения</button>
+  </form>
+  <button class="leaderboard-button"><a href="{{ url_for('menu.menu') }}">Назад</a></button>
+</div>
+{% endblock %}

@@ -14,6 +14,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
     nickname = db.Column(db.String(64), unique=True, nullable=False)
+    avatar = db.Column(db.String(200), nullable=True)
 
 
 class Game(db.Model):

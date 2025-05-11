@@ -34,11 +34,13 @@ def create_app():
     from .routes.game import bp as game_bp
     from .routes.quick_game import bp as quick_bp
     from .routes.menu import bp as menu_bp
+    from .routes.profile import profile_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(game_bp)
     app.register_blueprint(quick_bp)
     app.register_blueprint(menu_bp)
+    app.register_blueprint(profile_bp)
 
     # регистрация API
     from .api.endpoints import api_bp
