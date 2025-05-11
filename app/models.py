@@ -6,6 +6,8 @@ db = SQLAlchemy()
 
 
 class User(db.Model, UserMixin):
+    """Модель пользователя"""
+
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -15,6 +17,8 @@ class User(db.Model, UserMixin):
 
 
 class Game(db.Model):
+    """Модель игры"""
+
     __tablename__ = 'game'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +30,8 @@ class Game(db.Model):
 
 
 class Round(db.Model):
+    """Модель раунда"""
+
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     real_lat = db.Column(db.Float, nullable=False)

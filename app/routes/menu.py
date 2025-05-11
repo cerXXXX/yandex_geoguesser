@@ -8,11 +8,15 @@ bp = Blueprint('menu', __name__)
 @bp.route('/menu')
 @login_required
 def menu():
+    """Страница меню (главная страница)."""
+
     unfinished = Game.query.filter_by(user_id=current_user.id, score=None).first()
     return render_template('menu.html', unfinished_game=unfinished)
 
 
 @bp.route('/leaderboard')
 def leaderboard():
+    """Страница лидерборда (топ 10 игр)."""
+
     top = Game.query.order_by(Game.score.desc()).limit(10).all()
     return render_template('leaderboard.html', games=top)

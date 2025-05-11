@@ -2,7 +2,8 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 from flask_login import login_required, current_user
 from ..models import db, Game, Round
 from ..utils import generate_valid_coordinates, calculate_distance, calculate_points
-import datetime, random
+import datetime
+import random
 
 bp = Blueprint('game', __name__)
 
@@ -10,6 +11,9 @@ bp = Blueprint('game', __name__)
 @bp.route('/start_game')
 @login_required
 def start_game():
+    """Старт игры."""
+
+    # создаем новую игру
     game = Game(user_id=current_user.id, date=datetime.datetime.now())
     db.session.add(game)
     db.session.commit()
@@ -20,11 +24,16 @@ def start_game():
 @bp.route('/game', methods=['GET', 'POST'])
 @login_required
 def game():
+    """Игра."""
+
+    # если метод POST (нажата кнопка "Отправить"), то проверяем координаты и делаем редирект на страницу с результатом
     if request.method == 'POST':
         lat, lng = map(float, (request.form['guess_lat'], request.form['guess_lng']))
         real_lat, real_lng = session['real_lat'], session['real_lng']
         dist = calculate_distance(real_lat, real_lng, lat, lng)
         pts = calculate_points(dist)
+
+        # сохраняем результат в БД
         rnd = Round(game_id=session['game_id'],
                     real_lat=real_lat, real_lng=real_lng,
                     guess_lat=lat, guess_lng=lng,
@@ -32,6 +41,8 @@ def game():
         db.session.add(rnd)
         db.session.commit()
         return redirect(url_for('game.round_result', round_id=rnd.id))
+
+    # если метод GET, то просто отдаем страницу с игрой
     real_lat, real_lng = generate_valid_coordinates()
     session['real_lat'], session['real_lng'] = real_lat, real_lng
     return render_template('game.html',
@@ -42,6 +53,8 @@ def game():
 @bp.route('/round_result/<int:round_id>')
 @login_required
 def round_result(round_id):
+    """Страница с результатом раунда."""
+
     entry = Round.query.get_or_404(round_id)
     return render_template('round_result.html', round_entry=entry)
 
@@ -49,14 +62,21 @@ def round_result(round_id):
 @bp.route('/finish_game')
 @login_required
 def finish_game():
+    """Страница с результатом игры."""
+
+    # проверяем, что игра существует
     gid = session.pop('game_id', None)
     if not gid:
         return redirect(url_for('menu.menu'))
+
+    # получаем все раунды, считаем общий результат и сохраняем в БД
     rounds = Round.query.filter_by(game_id=gid).all()
     total = sum(r.points for r in rounds)
     game = Game.query.get(gid)
     game.score = total
     db.session.commit()
+
+    # очищаем сессию (на всякий случай)
     session.pop('real_lat', None)
     session.pop('real_lng', None)
     return render_template('game_result.html', score=total)

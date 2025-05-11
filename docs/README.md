@@ -55,8 +55,8 @@ project-root/
 
 ## ⚙️ Быстрый старт (Docker)
 
-1. `git clone https://github.com/your-user/NotGeoGuesser.git`
-2. `cd NotGeoGuesser`
+1. `git clone https://github.com/cerXXXX/yandex_geoguesser`
+2. `cd yandex_geoguesser`
 3. `docker compose up -d --build`
 4. `docker compose exec app flask show-api-key`
 
@@ -137,7 +137,7 @@ print(response.json())
 
 * Регистрация / Вход
 * Основной меню / Продолжение игры
-* Игра c оценкой расстояния
+* Игра с оценкой расстояния
 * Быстрая игра (без бд)
 * Таблица лидеров
 * Защищённое REST API

@@ -10,7 +10,9 @@ def get_api_key():
     Возвращает токен, создавая его при первом обращении.
     Файл .secret/api_key.txt не хранится в репозитории.
     """
+
     os.makedirs(SECRET_DIR, exist_ok=True)
+
     # Если файла нет — генерируем и сохраняем
     if not os.path.exists(API_KEY_FILE):
         token = secrets.token_hex(32)  # 64-символьный безопасный токен

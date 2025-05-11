@@ -4,7 +4,7 @@ FROM python:3.10-slim
 # Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
 
-# Копируем только зависимости сначала (для кэширования)
+# Копируем  зависимости
 COPY requirements.txt ./
 
 # Устанавливаем зависимости
@@ -17,7 +17,7 @@ COPY . .
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 
-# Expose порт
+# Порт
 EXPOSE 5000
 
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "run:app"]

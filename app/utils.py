@@ -4,6 +4,7 @@ import requests
 
 def generate_valid_coordinates():
     """Генерация случайных координат в заданном диапазоне с проверкой."""
+
     while True:
         lat = random.uniform(-40, 60)
         lng = random.uniform(-10, 40)
@@ -13,6 +14,7 @@ def generate_valid_coordinates():
 
 def validate_coordinates(lat, lng):
     """Проверка доступности спутникового снимка Яндекс."""
+
     url = f"https://static-maps.yandex.ru/1.x/?ll={lng},{lat}&z=15&size=450,450&l=sat"
     try:
         r = requests.get(url, timeout=3)
@@ -22,11 +24,14 @@ def validate_coordinates(lat, lng):
 
 
 def calculate_distance(lat1, lng1, lat2, lng2):
-    """Эвклидовых на сфере (прибл.)."""
+    """Расчет расстояния между двумя точками на земле."""
+
     return ((lat1 - lat2) ** 2 + (lng1 - lng2) ** 2) ** 0.5 * 111
 
 
 def calculate_points(distance):
+    """Расчет количества баллов за расстояние."""
+
     if distance < 10:
         return 5000
     elif distance < 100:

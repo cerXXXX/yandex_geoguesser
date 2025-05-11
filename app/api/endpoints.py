@@ -7,30 +7,38 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.before_request
 def require_api_key():
+    """Првоерка ключа API. Применяться для ВСЕХ запросов."""
     # разрешаем публичный endpoint для показа ключа, если он у вас есть
     if request.endpoint and request.endpoint.endswith('show_api_key'):
         return
 
+    # проверяем ключ
     token = request.headers.get('X-API-KEY', '')
     if not token or token != current_app.config['API_KEY']:
         return jsonify({'error': 'Unauthorized'}), 401
 
 
-# Пользователи
+# === Пользователи ===
 @api_bp.route('/users', methods=['GET'])
 def get_users():
+    """Получение всех пользователей."""
+
     return jsonify([{'id': u.id, 'email': u.email, 'nickname': u.nickname}
                     for u in User.query.all()])
 
 
 @api_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
+    """Получение пользователя по id."""
+
     u = User.query.get_or_404(user_id)
     return jsonify({'id': u.id, 'email': u.email, 'nickname': u.nickname})
 
 
 @api_bp.route('/users', methods=['POST'])
 def create_user():
+    """Создание пользователя."""
+
     data = request.get_json() or {}
     for f in ('email', 'password', 'nickname'):
         if f not in data:
@@ -43,9 +51,11 @@ def create_user():
     return jsonify(id=user.id), 201
 
 
-# Игры
+# === Игры ===
 @api_bp.route('/games', methods=['GET'])
 def get_games():
+    """Получение всех игр."""
+
     return jsonify([{'id': g.id, 'user_id': g.user_id,
                      'date': g.date.isoformat(),
                      'score': g.score} for g in Game.query.all()])
@@ -53,6 +63,8 @@ def get_games():
 
 @api_bp.route('/games', methods=['POST'])
 def create_game():
+    """Создание игры."""
+
     data = request.get_json() or {}
     if 'user_id' not in data:
         return jsonify(error="Missing user_id"), 400
@@ -64,9 +76,11 @@ def create_game():
     return jsonify(id=g.id), 201
 
 
-# Раунды
+# === Раунды ===
 @api_bp.route('/rounds', methods=['GET'])
 def get_rounds():
+    """Получение всех раундов."""
+
     return jsonify([{'id': r.id, 'game_id': r.game_id,
                      'real_lat': r.real_lat, 'real_lng': r.real_lng,
                      'guess_lat': r.guess_lat, 'guess_lng': r.guess_lng,
@@ -76,6 +90,8 @@ def get_rounds():
 
 @api_bp.route('/rounds', methods=['POST'])
 def create_round():
+    """Создание раунда."""
+
     data = request.get_json() or {}
     required = ['game_id', 'real_lat', 'real_lng', 'guess_lat', 'guess_lng']
     if not all(f in data for f in required):
@@ -96,7 +112,7 @@ def create_round():
 @api_bp.route('/reset-db', methods=['POST'])
 def reset_db():
     """
-    Полный сброс: удаляем все таблицы и создаём заново.
+    Полный сброс: удаляет все таблицы и создает заново.
     ВНИМАНИЕ: удаляет все данные!
     """
 
